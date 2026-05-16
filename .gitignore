@@ -31,3 +31,6 @@ coverage/
 
 # Editor
 .vscode/settings.json
+
+# Data
+menu.txt

@@ -23,7 +23,10 @@ export default {
 
 		const { memoBody } = (await request.json()) as { memoBody: string };
 
-		const inspirationHint = INSPIRATIONS[Math.floor(Math.random() * INSPIRATIONS.length)];
+		const slotInspirations = Array.from(
+			{ length: 5 },
+			() => INSPIRATIONS[Math.floor(Math.random() * INSPIRATIONS.length)],
+		);
 
 		const prompt = `以下は我が家の家族構成(family)、メニューの制約事項(constraints)、そして過去の夕飯記録(menu)です。
 
@@ -31,18 +34,17 @@ ${memoBody}
 
 今週の夕飯5案を提案してください。以下のスロット割り当てを必ず守ること:
 
-1案目: 青魚メイン（いわし・鯵・さば・さわら・かますなど）
-2案目: 白身魚または海鮮メイン（鯛・鮭・メカジキ・ホタテ・エビなど）
-3案目: 肉メイン（豚・鶏・牛のどれか）
-4案目: 卵または豆腐メイン（麻婆豆腐・卵とじ・天津飯・グラタンなど）
-5案目: 麺または丼（パスタ・ラーメン・親子丼・ガパオライスなど）
+1案目: 青魚メイン（いわし・鯵・さば・さわら・かますなど） / インスピレーション: ${slotInspirations[0]}
+2案目: 白身魚または海鮮メイン（鯛・鮭・メカジキ・ホタテ・エビなど） / インスピレーション: ${slotInspirations[1]}
+3案目: 肉メイン（豚・鶏・牛のどれか） / インスピレーション: ${slotInspirations[2]}
+4案目: 卵または豆腐メイン（麻婆豆腐・卵とじ・天津飯・グラタンなど） / インスピレーション: ${slotInspirations[3]}
+5案目: 麺または丼（パスタ・ラーメン・親子丼・ガパオライスなど） / インスピレーション: ${slotInspirations[4]}
 
 追加制約:
 - 5案それぞれの調理法が被らないこと（蒸す・焼く・煮る・炒める を分散）
 - 過去2週間に登場した主菜とは被らせないこと
 - 「鯖の味噌煮」は絶対に出さないこと
 - 各カテゴリで最も定番・ありきたりな料理は避け、少しひねりのある料理を選ぶこと
-- 今日のインスピレーション: ${inspirationHint}
 
 - 出力は番号付きリスト形式
 - 説明文は不要`;
@@ -65,7 +67,7 @@ ${memoBody}
 		const data = (await res.json()) as { content: { text: string }[] };
 		const menus = data.content[0].text;
 
-		return new Response(JSON.stringify({ inspiration: inspirationHint, menus }), {
+		return new Response(JSON.stringify({ inspirations: slotInspirations, menus }), {
 			headers: { 'content-type': 'application/json' },
 		});
 	},

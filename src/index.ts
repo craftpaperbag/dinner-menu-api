@@ -23,8 +23,10 @@ export default {
 
 		const { memoBody } = (await request.json()) as { memoBody: string };
 
-		const shuffled = [...INSPIRATIONS].sort(() => Math.random() - 0.5);
-		const slotInspirations = shuffled.slice(0, 5);
+		const slotInspirations = Array.from(
+			{ length: 5 },
+			() => INSPIRATIONS[Math.floor(Math.random() * INSPIRATIONS.length)],
+		);
 
 		const prompt = `以下は我が家の家族構成(family)、メニューの制約事項(constraints)、そして過去の夕飯記録(menu)です。
 
@@ -40,7 +42,6 @@ ${memoBody}
 
 追加制約:
 - 5案それぞれの調理法が被らないこと（蒸す・焼く・煮る・炒める を分散）
-- 5案それぞれのインスピレーション（料理系統）が被らないよう、和洋中エスニックを分散させること
 - 過去2週間に登場した主菜とは被らせないこと
 - 「鯖の味噌煮」は絶対に出さないこと
 - 各カテゴリで最も定番・ありきたりな料理は避け、少しひねりのある料理を選ぶこと

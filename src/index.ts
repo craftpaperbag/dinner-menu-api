@@ -1,29 +1,42 @@
 export interface Env {
 	ANTHROPIC_API_KEY: string;
+	AUTH_TOKEN: string;
 }
 
-const INSPIRATIONS = [
+const JAPANESE_INSPIRATIONS = [
+	'和の出汁文化（煮付け・あんかけ・だしびたし）',
+	'和食の焼き物（西京焼き・幽庵焼き・塩焼き）',
+	'和食の蒸し料理（茶碗蒸し・酒蒸し・かぶら蒸し）',
+	'和食の煮物（筑前煮・肉じゃが・ひじき煮）',
+	'和食の揚げ物（天ぷら・唐揚げ・竜田揚げ）',
+	'和食の炒め物（きんぴら・炒り鶏・野菜炒め）',
+	'和の鍋料理（寄せ鍋・みぞれ鍋・常夜鍋）',
+];
+
+const OTHER_INSPIRATIONS = [
 	'地中海料理（オリーブオイル・トマト・ハーブ）',
 	'韓国家庭料理（ナムル・チョリム・チゲ）',
 	'フランス家庭料理（ブレゼ・ポワレ・グラタン）',
 	'タイ・ベトナム料理（ガパオ・フォー・ナンプラー）',
-	'北欧スカンジナビア料理（燻製・マリネ・根菜）',
 	'中華家庭料理（炒め・蒸し・煮込み）',
-	'和の出汁文化（煮付け・あんかけ・だしびたし）',
 	'イタリア郷土料理（アクアパッツァ・カルパッチョ・リゾット）',
 	'スペイン料理（アヒージョ・エスカベッシュ・パエリア）',
-	'中東料理（シャクシュカ・クスクス・ザアタル）',
 ];
 
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
+		if (request.headers.get('Authorization') !== `Bearer ${env.AUTH_TOKEN}`) {
+			return new Response('Unauthorized', { status: 401 });
+		}
+
 		if (request.method !== 'POST') {
 			return new Response('POST only', { status: 405 });
 		}
 
 		const { memoBody } = (await request.json()) as { memoBody: string };
 
-		const inspirationHint = INSPIRATIONS[Math.floor(Math.random() * INSPIRATIONS.length)];
+		const pool = Math.random() < 0.7 ? JAPANESE_INSPIRATIONS : OTHER_INSPIRATIONS;
+		const inspirationHint = pool[Math.floor(Math.random() * pool.length)];
 
 		const prompt = `以下は我が家の家族構成(family)、メニューの制約事項(constraints)、そして過去の夕飯記録(menu)です。
 
@@ -63,9 +76,9 @@ ${memoBody}
 		});
 
 		const data = (await res.json()) as { content: { text: string }[] };
-		const menus = data.content[0].text;
+		const menus = `インスピレーション: ${inspirationHint}\n\n${data.content[0].text}`;
 
-		return new Response(JSON.stringify({ inspiration: inspirationHint, menus }), {
+		return new Response(JSON.stringify({ menus }), {
 			headers: { 'content-type': 'application/json' },
 		});
 	},
